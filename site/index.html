@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Testflock</title>
+<meta name="description" content="A flock of testers on every phone. Scripted and AI QA for web, Android and iOS apps from one config, with reports by email and CI. No API key needed.">
+<meta property="og:title" content="Testflock: a flock of testers on every phone">
+<meta property="og:description" content="One qa.yml runs your app on every device, language, network and text size, on web, Android and iOS.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f6bff'/%3E%3Cpath d='M7 14l4 3 4-3M17 11l4 3 4-3M12 21l4 3 4-3' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f4f3ef; --bg2:#eceae3; --card:#fffefb; --fg:#15171c; --muted:#5a5f69; --line:#d9d6cc;
+  --accent:#2f6bff; --accent-soft:#dbe5ff; --accent-ink:#fff;
+  --term:#111317; --term-fg:#d7dae0; --term-dim:#7d828c; --key:#8fb0ff; --str:#a6d189;
+  --blocker:#d9473f; --major:#e07a1f; --minor:#b48a12; --cosmetic:#7f8896; --ok:#2f9e5b;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d0f13; --bg2:#13161b; --card:#171a20; --fg:#eceae4; --muted:#9a9ea7; --line:#2a2e36;
+  --accent:#6b93ff; --accent-soft:#1c2747; --term:#08090b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d0f13; --bg2:#13161b; --card:#171a20; --fg:#eceae4; --muted:#9a9ea7; --line:#2a2e36;
+  --accent:#6b93ff; --accent-soft:#1c2747; --term:#08090b; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+img{max-width:100%;height:auto;display:block}
+.wrap{max-width:1140px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);letter-spacing:-.02em;text-wrap:balance;margin:0}
+code,pre,.mono{font-family:var(--mono)}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:24px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font:800 20px/1 var(--display);text-decoration:none;letter-spacing:-.03em}
+nav .links{display:flex;gap:22px;margin-left:auto;font-size:14px}
+nav .links a{text-decoration:none;color:var(--muted)}
+nav .links a:hover{color:var(--fg)}
+.gh{font:500 13px var(--mono);padding:7px 12px;border:1px solid var(--line);border-radius:8px;text-decoration:none}
+@media (max-width:760px){nav .links{display:none}.gh{margin-left:auto}}
+
+.hero{padding-block:64px 28px}
+.hero-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:40px;align-items:center}
+.hero-grid>*{min-width:0}
+@media (max-width:920px){.hero-grid{grid-template-columns:1fr}.hero{padding-block:40px 16px}}
+.hero h1{font-size:clamp(40px,6.2vw,70px);line-height:1.02;font-weight:800}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.lede{font-size:clamp(17px,1.6vw,19px);color:var(--muted);max-width:33em;margin:20px 0 26px}
+.install{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;max-width:540px}
+.tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{font:500 13px var(--mono);background:none;border:0;color:var(--muted);padding:11px 16px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.cmd{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.cmd code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;font-size:14px}
+.copy{font:500 12px var(--mono);border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:7px;padding:6px 10px;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{font:500 12.5px var(--mono);padding:5px 10px;border-radius:99px;background:var(--bg2);border:1px solid var(--line);color:var(--muted)}
+
+/* the flock */
+.flock{position:relative;height:540px;width:100%}
+.phone{position:absolute;border-radius:26px;padding:7px;background:#0c0d10;outline:1px solid rgba(255,255,255,.14);box-shadow:0 18px 50px -18px rgba(10,20,50,.45);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.phone img{border-radius:20px;width:100%}
+.phone .tag{position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);white-space:nowrap;font:500 11.5px var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:99px;padding:4px 10px;box-shadow:0 4px 14px -6px rgba(0,0,0,.25)}
+.phone.tablet{border-radius:22px}
+.p1{width:176px;left:0;top:70px;transform:rotate(-7deg)}
+.p2{width:184px;left:150px;top:10px;transform:rotate(-2deg);z-index:2}
+.p3{width:184px;left:308px;top:40px;transform:rotate(4deg);z-index:3}
+.p4{width:228px;right:-6px;top:96px;transform:rotate(8deg);z-index:1}
+.flock:hover .phone{transform:rotate(0) translateY(-4px)}
+.ticker{position:absolute;left:0;bottom:-6px;z-index:4;background:var(--term);border:1px solid rgba(255,255,255,.1);color:var(--term-fg);font:12.5px/1.5 var(--mono);border-radius:12px;padding:12px 14px;width:min(360px,90%);box-shadow:0 18px 40px -20px rgba(0,0,0,.6)}
+.ticker .ok{color:#7ee2a3}.ticker .dim{color:var(--term-dim)}.ticker .bad{color:#ff9b8e}
+@media (max-width:920px){.flock{height:470px;max-width:520px;margin:0 auto}.p1{width:150px}.p2{width:156px;left:120px}.p3{width:156px;left:250px}.p4{width:190px}}
+@media (max-width:560px){.flock{height:410px}.p1{width:116px;left:4px;top:40px}.p2{width:124px;left:calc(50% - 62px)}.p3{width:124px;left:auto;right:4px;top:30px}.p4{display:none}.phone .tag{display:none}.ticker{font-size:11.5px;left:50%;transform:translateX(-50%)}}
+
+section{padding-block:64px}
+.sec-head{max-width:720px;margin-bottom:30px}
+.sec-head h2{font-size:clamp(28px,3.6vw,42px);line-height:1.08;margin-top:10px}
+.sec-head p{color:var(--muted);font-size:17px;margin:14px 0 0}
+.alt{background:var(--bg2);border-block:1px solid var(--line)}
+
+.proof{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.stat .n{font:800 clamp(30px,3.6vw,40px)/1 var(--display);letter-spacing:-.03em}
+.stat p{margin:8px 0 0;color:var(--muted);font-size:14px}
+@media (max-width:760px){.proof{grid-template-columns:1fr 1fr}}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.two>*{min-width:0}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+pre.term{background:var(--term);color:var(--term-fg);border-radius:14px;padding:18px 20px;margin:0;overflow-x:auto;font-size:13.5px;line-height:1.6}
+.k{color:var(--key)}.s{color:var(--str)}.c{color:var(--term-dim)}
+.axes{display:grid;gap:10px}
+.axis{display:flex;gap:14px;align-items:baseline;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.axis b{font:600 13px var(--mono);min-width:96px}
+.axis span{color:var(--muted);font-size:14.5px}
+.mult{font:800 26px var(--display);margin-top:6px}
+.mult small{font:500 14px var(--sans);color:var(--muted);display:block}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:860px){.cards{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:10px}
+.card h3{font-size:22px}
+.card p{margin:0;color:var(--muted)}
+.card pre{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;margin:6px 0 0;font-size:12.5px;overflow-x:auto}
+.pill{align-self:flex-start;font:600 11.5px var(--mono);padding:3px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+.tbl{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:14px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600;white-space:nowrap}
+.note{color:var(--muted);font-size:14px;margin-top:12px}
+
+.report{border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 24px 60px -30px rgba(0,0,0,.35);background:#fff}
+.sev{display:inline-block;font:600 11.5px var(--mono);color:#fff;border-radius:99px;padding:2px 8px;margin-right:6px}
+ul.clean{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+ul.clean li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+ul.clean li p{margin:4px 0 0;color:var(--muted);font-size:14px}
+
+.credit{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;gap:18px;align-items:flex-start}
+.credit p{margin:0;color:var(--muted)}
+footer{padding-block:40px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center}
+footer a{text-decoration:none}
+@media (prefers-reduced-motion:reduce){.phone{transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="brand" href="#"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M7 14l4 3 4-3M17 11l4 3 4-3M12 21l4 3 4-3" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Testflock</a>
+  <div class="links"><a href="#how">How it works</a><a href="#modes">Tests</a><a href="#platforms">Platforms</a><a href="#ci">CI</a><a href="#ai">AI</a></div>
+  <a class="gh" href="https://github.com/kanumuri9593/testflock">GitHub</a>
+</div></nav>
+
+<header class="hero"><div class="wrap hero-grid">
+  <div>
+    <div class="eyebrow">Open source QA · web · Android · iOS</div>
+    <h1 style="margin-top:14px">A flock of testers on <em>every phone</em>.</h1>
+    <p class="lede">One <code>qa.yml</code> runs your app on every device, language, orientation, network, theme and text size. Write a few steps, or let an AI tester explore like a new user. You get every screenshot in one report, in your CI and in your inbox.</p>
+    <div class="install">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-cmd='pip install "testflock[web,ai] @ git+https://github.com/kanumuri9593/testflock"'>pip</button>
+        <button role="tab" aria-selected="false" data-cmd="uses: kanumuri9593/testflock@main">GitHub Action</button>
+        <button role="tab" aria-selected="false" data-cmd="testflock init && testflock run --notify">first run</button>
+      </div>
+      <div class="cmd"><code id="cmd">pip install "testflock[web,ai] @ git+https://github.com/kanumuri9593/testflock"</code><button class="copy" id="copy">Copy</button></div>
+    </div>
+    <div class="chips"><span class="chip">No API key needed</span><span class="chip">Bring your own AI</span><span class="chip">MIT</span><span class="chip">Python 3.9+</span></div>
+  </div>
+  <div class="flock" aria-label="Real screenshots of one test run on four device setups">
+    <div class="phone p1"><img src="assets/iphone-se-en.webp" alt="TagVault on iPhone SE in English" width="480" height="853"></div>
+    <div class="phone p2"><img src="assets/pixel-8-es.webp" alt="TagVault on Pixel 8 in Spanish" width="480" height="1066"></div>
+    <div class="phone p3"><img src="assets/iphone-16-dark.webp" alt="TagVault on iPhone 16 in dark mode" width="480" height="1040"></div>
+    <div class="phone p4 tablet"><img src="assets/ipad-mini-es.webp" alt="TagVault on iPad mini in Spanish" width="720" height="1096"></div>
+    <div class="ticker" aria-hidden="true">
+      <div><span class="dim">$</span> testflock run</div>
+      <div><span class="dim">[1/11]</span> iphone-se, en-US <span class="ok">passed</span></div>
+      <div><span class="dim">[4/11]</span> pixel-8, es-ES <span class="ok">passed</span></div>
+      <div><span class="dim">[6/11]</span> ipad-mini, es-ES <span class="ok">passed</span></div>
+      <div><span class="dim">[7/11]</span> iphone-16, offline <span class="bad">failed</span></div>
+      <div><span class="dim">[8/11]</span> iphone-16, dark <span class="ok">passed</span></div>
+    </div>
+  </div>
+</div></header>
+
+<section id="proof"><div class="wrap">
+  <div class="sec-head"><div class="eyebrow">First run, on our own app</div>
+    <h2>We pointed it at TagVault before showing it to anyone.</h2>
+    <p>TagVault's web build, 11 device setups, a scripted onboarding test and a free crawl on each. No AI and no key. Real numbers from that run:</p></div>
+  <div class="proof">
+    <div class="stat"><div class="n">11</div><p>device setups: 3 phones and a tablet, English and Spanish, offline, slow 3G, dark, landscape, largest text</p></div>
+    <div class="stat"><div class="n">21/22</div><p>tests passed. The one failure is real: the web build can't reopen offline</p></div>
+    <div class="stat"><div class="n">4</div><p>tour photos the app asks for but never shipped, found on 9 setups</p></div>
+    <div class="stat"><div class="n">$0</div><p>no-AI mode on a Linux machine, about 10 minutes from start to report</p></div>
+  </div>
+</div></section>
+
+<section id="how" class="alt"><div class="wrap two">
+  <div>
+    <div class="sec-head"><div class="eyebrow">How it works</div>
+      <h2>Every list multiplies. You choose how far.</h2>
+      <p>Each line of the matrix is one axis. Testflock runs every combination, minus the ones you exclude, plus the odd ones you add by hand. A cap stops a typo from booking 400 phones.</p></div>
+    <div class="axes">
+      <div class="axis"><b>devices</b><span>iPhone SE to iPad Pro, Pixel, Galaxy, laptop, or your own sizes</span></div>
+      <div class="axis"><b>locales</b><span>language, timezone and location move together</span></div>
+      <div class="axis"><b>networks</b><span>online, offline, wifi, 4g, fast-3g, slow-3g, 2g, flaky</span></div>
+      <div class="axis"><b>themes</b><span>light and dark</span></div>
+      <div class="axis"><b>text_sizes</b><span>small to the largest accessibility size</span></div>
+      <div class="axis"><b>orientations</b><span>portrait and landscape</span></div>
+    </div>
+  </div>
+<pre class="term"><span class="c"># qa.yml</span>
+<span class="k">name:</span> <span class="s">TagVault</span>
+<span class="k">app:</span>
+  <span class="k">web:</span>     {<span class="k">serve:</span> <span class="s">build/web</span>}
+  <span class="k">android:</span> {<span class="k">package:</span> <span class="s">com.example.app</span>, <span class="k">apk:</span> <span class="s">app.apk</span>}
+  <span class="k">ios:</span>     {<span class="k">app:</span> <span class="s">Runner.app</span>}
+<span class="k">matrix:</span>
+  <span class="k">platforms:</span> [<span class="s">web, android, ios</span>]
+  <span class="k">devices:</span>   {<span class="k">web:</span> [<span class="s">iphone-se, pixel-8, ipad-mini</span>]}
+  <span class="k">locales:</span>   [<span class="s">en-US, es-ES</span>]
+  <span class="k">networks:</span>  [<span class="s">online, offline</span>]
+  <span class="k">themes:</span>    [<span class="s">light, dark</span>]
+  <span class="k">exclude:</span>   [{<span class="k">network:</span> <span class="s">offline</span>, <span class="k">theme:</span> <span class="s">dark</span>}]
+  <span class="k">max_cells:</span> <span class="s">24</span>
+<span class="k">tests:</span>
+  - <span class="k">name:</span> <span class="s">Add a first item</span>
+    <span class="k">steps:</span>
+      - <span class="k">tap:</span> <span class="s">"Add"</span>
+      - <span class="k">type:</span> {<span class="k">into:</span> <span class="s">"Name"</span>, <span class="k">text:</span> <span class="s">"Spare keys"</span>}
+      - <span class="k">relaunch:</span> <span class="s">true</span>
+      - <span class="k">expect:</span> <span class="s">"Spare keys"</span>
+  - <span class="k">name:</span> <span class="s">Explore like a new user</span>
+    <span class="k">agent:</span> {<span class="k">goal:</span> <span class="s">"Add an item and find it again"</span>}
+<span class="k">notify:</span>
+  <span class="k">email:</span> {<span class="k">to:</span> [<span class="s">you@example.com</span>]}</pre>
+</div></section>
+
+<section id="modes"><div class="wrap">
+  <div class="sec-head"><div class="eyebrow">Three kinds of test</div>
+    <h2>Scripts for what must work. Testers for what nobody thought of.</h2></div>
+  <div class="cards">
+    <div class="card"><span class="pill">steps</span><h3>Scripted</h3>
+      <p>Tap, type, scroll, expect, relaunch, go offline mid-test. Controls are found by their accessibility label, so one script runs on web, Android and iOS. If it can't find a button, VoiceOver probably can't either.</p>
+      <pre>- tap: "Add"
+- network: offline
+- expect: {not: "Error"}</pre></div>
+    <div class="card"><span class="pill">crawl · free</span><h3>No-AI crawler</h3>
+      <p>Taps every safe control, screen by screen, and checks each one. It never taps delete, sign out, buy or send. It finds crashes, dead ends, missing files and layout problems, with no key and no cost.</p>
+      <pre>- crawl: {max_actions: 30}</pre></div>
+    <div class="card"><span class="pill">agent · your key</span><h3>AI tester</h3>
+      <p>Plays a persona with a goal, reads each screenshot, taps by number and reports issues as it goes. It ends with a score out of 10. With AI off, agent tests quietly run as the crawler instead.</p>
+      <pre>agent:
+  persona: "Busy parent, large text"
+  goal: "Find the passport"</pre></div>
+  </div>
+  <p class="note">On every screen, automatic checks look for crashes and uncaught errors, content wider than the screen, failed requests, controls with no label, touch targets under 44 pt / 48 dp, and controls placed off screen.</p>
+</div></section>
+
+<section id="platforms" class="alt"><div class="wrap">
+  <div class="sec-head"><div class="eyebrow">Platforms</div>
+    <h2>Honest about what each platform can fake.</h2>
+    <p>Anything a platform can't emulate is listed in the report under "Could not emulate". It is never skipped silently.</p></div>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>Web</th><th>Android</th><th>iOS</th></tr></thead>
+    <tbody>
+      <tr><td>Runs on</td><td>Playwright Chromium, any OS</td><td>Emulator or USB phone (adb)</td><td>Simulator on a Mac (simctl + AXe)</td></tr>
+      <tr><td>Screen</td><td>11 presets, touch and phone user agent</td><td>Emulator profiles</td><td>Any Simulator device</td></tr>
+      <tr><td>Language</td><td>Locale, timezone, location</td><td>System locale (rooted image)</td><td>Language and region</td></tr>
+      <tr><td>Network</td><td>Offline and throttled per test</td><td>Airplane mode, speed and delay on emulators</td><td>Shares the Mac's network*</td></tr>
+      <tr><td>Theme, text</td><td>Dark mode, root font size**</td><td>Dark mode, font scale up to 2.0</td><td>Dark mode, Dynamic Type up to the largest</td></tr>
+      <tr><td>Extras</td><td>Console and network errors, sideways scroll</td><td>Crash buffer, permissions</td><td>Clean 9:41 status bar, permissions</td></tr>
+    </tbody></table></div>
+  <p class="note">* Slow and offline iOS runs need Apple's Network Link Conditioner, which slows the whole Mac. ** Flutter web draws on a canvas and ignores the browser's text size. Testflock switches on Flutter's accessibility tree, so scripts still find every button.</p>
+</div></section>
+
+<section id="report"><div class="wrap two">
+  <div>
+    <div class="sec-head"><div class="eyebrow">Reports</div>
+      <h2>One page that groups the same bug across every phone.</h2>
+      <p>The same problem on nine setups shows once, with where it happened and screenshots. The run also writes JSON for tools, JUnit for your CI's test tab and a Markdown summary for the pull request.</p></div>
+    <ul class="clean">
+      <li><span class="sev" style="background:var(--major)">major</span><b>Does not reopen offline</b><p>Seen on iPhone 16, offline</p></li>
+      <li><span class="sev" style="background:var(--minor)">minor</span><b>HTTP 404 /assets/tour/jacket.jpg</b><p>Seen on 9 setups</p></li>
+      <li><span class="sev" style="background:var(--cosmetic)">cosmetic</span><b>Touch target under 44: "Skip" 56×32</b><p>Seen on 6 setups</p></li>
+    </ul>
+  </div>
+  <div class="report"><img src="assets/report.webp" alt="Testflock HTML report for TagVault: 21 passed, 1 failed, issues grouped across setups" width="1400" height="1094"></div>
+</div></section>
+
+<section id="ci" class="alt"><div class="wrap two">
+  <div>
+    <div class="sec-head"><div class="eyebrow">CI and email</div>
+      <h2>Runs on every pull request. Emails you only when it matters.</h2>
+      <p>The GitHub Action splits the setups across parallel jobs, merges one report and sends it by email, Slack, Discord or Teams. Ready workflows cover web on Linux, Android emulators on Linux, and iOS on your own Mac as a free runner.</p></div>
+    <ul class="clean">
+      <li><b>Email</b><p>Any SMTP server, Gmail app passwords included, or Resend. The report goes as a zip, or as a link to the run when it's large.</p></li>
+      <li><b>Fail rules</b><p><code>fail_on: [blocker, major]</code> decides what breaks the build. <code>notify.when: failure</code> keeps your inbox quiet on green runs.</p></li>
+      <li><b>Any CI</b><p><code>testflock run --shard 2/4</code>, then <code>testflock merge</code>. It's one command on any machine.</p></li>
+    </ul>
+  </div>
+<pre class="term"><span class="c"># .github/workflows/qa.yml</span>
+<span class="k">jobs:</span>
+  <span class="k">test:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">strategy:</span>
+      <span class="k">matrix:</span> {<span class="k">shard:</span> [<span class="s">1/4, 2/4, 3/4, 4/4</span>]}
+    <span class="k">steps:</span>
+      - <span class="k">uses:</span> <span class="s">actions/checkout@v4</span>
+      - <span class="k">run:</span> <span class="s">flutter build web --no-web-resources-cdn</span>
+      - <span class="k">uses:</span> <span class="s">kanumuri9593/testflock@main</span>
+        <span class="k">with:</span>
+          <span class="k">args:</span> <span class="s">--shard ${{ matrix.shard }}</span>
+        <span class="k">env:</span>
+          <span class="k">ANTHROPIC_API_KEY:</span> <span class="s">${{ secrets.ANTHROPIC_API_KEY }}</span>
+  <span class="k">report:</span>
+    <span class="k">needs:</span> <span class="s">test</span>
+    <span class="k">steps:</span>
+      - <span class="k">run:</span> <span class="s">testflock merge shards --notify</span></pre>
+</div></section>
+
+<section id="ai"><div class="wrap">
+  <div class="sec-head"><div class="eyebrow">Your AI, your credits</div>
+    <h2>No key to start. Your own key when you want testers that think.</h2>
+    <p>Testflock never holds a key of its own. Secrets come from environment variables or CI secrets, never from <code>qa.yml</code>.</p></div>
+  <div class="tbl"><table>
+    <thead><tr><th>ai.provider</th><th>Who pays</th><th>Setup</th></tr></thead>
+    <tbody>
+      <tr><td>none</td><td>Nobody</td><td>Default. Scripts, the crawler and every automatic check</td></tr>
+      <tr><td>anthropic</td><td>Your Anthropic key</td><td><code>ANTHROPIC_API_KEY</code>. Pick any Claude model; Haiku costs least</td></tr>
+      <tr><td>anthropic + base_url</td><td>That provider</td><td>Any Anthropic-compatible API: a gateway, OpenRouter, a proxy</td></tr>
+      <tr><td>claude-code</td><td>Your Claude subscription</td><td>The <code>claude</code> CLI, or <code>CLAUDE_CODE_OAUTH_TOKEN</code> in CI</td></tr>
+    </tbody></table></div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <div class="credit">
+    <svg width="36" height="36" viewBox="0 0 24 24" aria-hidden="true" style="flex:none"><path fill="var(--accent)" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 5.3 3 1.7-1.8 3.2-3 5.3-3 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>
+    <div><h3 style="font-size:20px">Standing on a good idea</h3>
+      <p style="margin-top:6px">Testflock was inspired by <a href="https://github.com/pierridotite/mobile-agent-testers">mobile-agent-testers</a> by Pierre Raffalli (MIT): AI testers, each playing a persona on its own simulator. We wrote Testflock from scratch and added web, scripted tests, network and orientation emulation, a no-AI mode, and reports by email.</p></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <a class="brand" href="#" style="font-size:17px">Testflock</a>
+  <span>Made by <a href="https://studio.oneenergytogether.com">One Energy Together</a>, the studio behind TagVault and CoreRun.</span>
+  <span style="margin-left:auto"><a href="https://github.com/kanumuri9593/testflock">GitHub</a> · MIT License</span>
+</div></footer>
+
+<script>
+const tabs=document.querySelectorAll('.tabs button'),cmd=document.getElementById('cmd');
+tabs.forEach(b=>b.addEventListener('click',()=>{tabs.forEach(t=>t.setAttribute('aria-selected',t===b));cmd.textContent=b.dataset.cmd}));
+document.getElementById('copy').addEventListener('click',e=>{navigator.clipboard&&navigator.clipboard.writeText(cmd.textContent).then(()=>{e.target.textContent='Copied';setTimeout(()=>e.target.textContent='Copy',1400)})});
+</script>
+</body>
+</html>
