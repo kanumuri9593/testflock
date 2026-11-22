@@ -1,0 +1,24 @@
+# Copy to .github/workflows/testflock-ios.yml.
+# Default: your own Mac as a self-hosted runner (free, uses your Xcode and
+# simulators). GitHub's macos-15 runners also work but bill macOS minutes at
+# 10x in private repos.
+name: Testflock (iOS)
+on: [workflow_dispatch]
+jobs:
+  ios:
+    runs-on: [self-hosted, macOS]        # or: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      # Flutter: flutter build ios --simulator --debug
+      # SwiftUI: xcodebuild -scheme App -sdk iphonesimulator -configuration Debug -derivedDataPath build
+      - run: flutter build ios --simulator --debug
+      - run: brew list axe >/dev/null 2>&1 || brew install cameroncooke/axe/axe
+      - run: python3 -m pip install --quiet "git+https://github.com/kanumuri9593/testflock#egg=testflock[ai]"
+      - run: testflock run --only platform=ios --out report --no-fail --notify
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: {name: ios-report, path: report}

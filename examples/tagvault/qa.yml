@@ -1,0 +1,41 @@
+# Testflock config for TagVault's web build (flutter build web --no-web-resources-cdn).
+name: TagVault
+app:
+  web: {serve: web}
+
+matrix:
+  platforms: [web]
+  devices: {web: [iphone-se, pixel-8, ipad-mini]}
+  locales: [en-US, es-ES]
+  networks: [online]
+  themes: [light]
+  include:
+    - {platform: web, device: iphone-16, network: offline}
+    - {platform: web, device: iphone-16, theme: dark}
+    - {platform: web, device: iphone-16, network: slow-3g}
+    - {platform: web, device: pixel-8, orientation: landscape}
+    - {platform: web, device: iphone-16, text_size: largest}
+
+tests:
+  - name: First-run onboarding reaches home
+    steps:
+      - tap: {label: "/^(Continue|Continuar)$/"}
+      - tap: {label: "/^(Continue|Continuar)$/"}
+      - tap: {label: "/^(Continue|Continuar)$/"}
+      - tap: {label: "/^(Continue|Continuar)$/"}
+      - type: {into: "/name|nombre/", text: "Sam"}
+      - tap: "😎"
+      - tap: {label: "/^(Continue|Continuar)$/"}
+      - tap: {label: "/Get started|Empezar|Comenzar/"}
+      - wait: 2
+      - screenshot: home
+      - relaunch: true
+      - expect: {not: "/What should we call you|Cómo te llamamos/"}
+      - screenshot: after-relaunch
+  - name: Explore (no AI)
+    crawl: {max_actions: 12}
+
+checks: [a11y, overflow, console, crash]
+fail_on: [blocker, major]
+ai: {provider: none}
+report: {out: testflock-report}

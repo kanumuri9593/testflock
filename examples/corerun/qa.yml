@@ -1,0 +1,41 @@
+# CoreRun (Flutter). Android in CI (Linux + emulator), iOS on Varma's Mac.
+# CoreRun signs in with Firebase, so tests use a dedicated test account
+# whose details come from CI secrets, never from this file.
+name: CoreRun
+app:
+  android:
+    package: com.oneenergytogether.core_run
+    apk: build/app/outputs/flutter-apk/app-debug.apk
+    grant: [android.permission.POST_NOTIFICATIONS]
+  ios:
+    app: build/ios/iphonesimulator/Runner.app
+    grant: [notifications]
+matrix:
+  platforms: [android, ios]
+  devices: {android: [pixel-8, small-android], ios: [iphone-se, iphone-16]}
+  locales: [en-US, hi-IN, te-IN, es-ES]      # the four languages CoreRun ships
+  themes: [light, dark]
+  networks: [online]
+  include:
+    - {platform: android, device: pixel-8, network: offline}
+    - {platform: android, device: pixel-8, network: slow-3g}
+  max_cells: 40
+tests:
+  - name: Sign in and tick a habit
+    steps:
+      - tap: {label: "/Sign in|Log in/", optional: true}
+      - type: {into: "/Email/", text: "${CORERUN_TEST_EMAIL}"}
+      - type: {into: "/Password/", text: "${CORERUN_TEST_PASSWORD}", enter: true}
+      - wait: {for: "/Today|Habits/", timeout: 20}
+      - screenshot: today
+  - name: A new user's first day
+    agent:
+      persona: "Wants to build a morning routine, checks the app once a day, not technical"
+      goal: "Add a habit, tick it done, and see the streak."
+      max_actions: 30
+checks: [a11y, overflow, console, crash]
+fail_on: [blocker]
+ai: {provider: anthropic, model: claude-opus-5-5, effort: low}
+notify:
+  when: failure
+  email: {to: ["${QA_EMAIL_TO}"], via: smtp, smtp: {host: smtp.gmail.com, port: 587}}

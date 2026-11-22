@@ -1,0 +1,50 @@
+name: Testflock QA
+description: Run scripted and AI testers on web, Android and iOS from one qa.yml, and publish the report.
+author: One Energy Together
+branding: {icon: check-circle, color: blue}
+inputs:
+  config:
+    description: Path to qa.yml
+    default: qa.yml
+  args:
+    description: Extra arguments for `testflock run` (e.g. --only platform=web --shard 1/4 --notify)
+    default: ""
+  out:
+    description: Report folder
+    default: testflock-report
+  web:
+    description: Install Playwright Chromium for web tests
+    default: "true"
+  ai:
+    description: Install the Anthropic SDK for agent tests
+    default: "true"
+  artifact-name:
+    description: Name of the uploaded report artifact
+    default: testflock-report
+outputs:
+  report:
+    description: Path of the HTML report
+    value: ${{ inputs.out }}/index.html
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with: {python-version: "3.12"}
+    - name: Install Testflock
+      shell: bash
+      run: |
+        extras=""
+        [ "${{ inputs.web }}" = "true" ] && extras="web"
+        [ "${{ inputs.ai }}" = "true" ] && extras="${extras:+$extras,}ai"
+        python -m pip install --quiet "${{ github.action_path }}${extras:+[$extras]}"
+        if [ "${{ inputs.web }}" = "true" ]; then python -m playwright install --with-deps chromium; fi
+    - name: Run testers
+      shell: bash
+      run: testflock run -c "${{ inputs.config }}" --out "${{ inputs.out }}" ${{ inputs.args }}
+    - name: Upload report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.out }}
+        retention-days: 14

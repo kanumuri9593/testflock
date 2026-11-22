@@ -1,0 +1,42 @@
+# Copy to .github/workflows/testflock-android.yml in a Flutter or native Android repo.
+# Boots a real Android emulator on a Linux runner (hardware acceleration via KVM).
+name: Testflock (Android)
+on: [workflow_dispatch, pull_request]
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:     # one emulator per job; keep in sync with matrix.devices.android in qa.yml
+          - {device: pixel-8, profile: pixel_8, api: 35}
+          - {device: small-android, profile: "Nexus 5", api: 30}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: "17"}
+      - uses: subosito/flutter-action@v2
+        with: {flutter-version: "3.38.2", cache: true}
+      - run: flutter build apk --debug
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install --quiet "git+https://github.com/kanumuri9593/testflock#egg=testflock[ai]"
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis           # rooted image: lets Testflock change the language
+          arch: x86_64
+          profile: ${{ matrix.profile }}
+          disable-animations: true
+          script: testflock run --only platform=android,device=${{ matrix.device }} --out report --no-fail --notify
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: {name: "android-${{ matrix.device }}", path: report}

@@ -1,0 +1,27 @@
+# Diya (SwiftUI, iOS 26). iOS only, on Varma's Mac (self-hosted runner or
+# Remote Control). Build: xcodegen && xcodebuild -scheme Diya -sdk iphonesimulator
+#   -configuration Debug -derivedDataPath build
+name: Diya
+app:
+  ios:
+    app: build/Build/Products/Debug-iphonesimulator/Diya.app
+matrix:
+  platforms: [ios]
+  devices: {ios: [iphone-17, iphone-16-pro-max, iphone-se]}
+  locales: [en-US]
+  themes: [light, dark]
+  text_sizes: [default, largest]
+tests:
+  - name: Today's edition opens and ends
+    steps:
+      - wait: 3
+      - screenshot: edition
+      - scroll: {until: "/That's all|The end|Done for today/", max: 15}
+      - screenshot: ending
+  - name: Reader's first visit
+    agent:
+      persona: "Tired of doom-scrolling, wants ten calm minutes of news over coffee"
+      goal: "Read today's edition to the end and decide whether it felt complete."
+      max_actions: 25
+checks: [a11y, crash]
+ai: {provider: claude-code, model: sonnet}

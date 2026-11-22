@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "testflock"
+version = "0.1.0"
+description = "A flock of testers on every phone: scripted and AI QA for web, Android and iOS apps from one config, with reports by email and CI."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [{ name = "Yeswanth Varma Kanumuri" }]
+keywords = ["qa", "testing", "mobile", "flutter", "android", "ios", "playwright", "ai-agents", "ci"]
+dependencies = ["pyyaml>=6"]
+
+[project.optional-dependencies]
+web = ["playwright>=1.45"]
+ai = ["anthropic>=0.70", "pillow>=10"]
+all = ["playwright>=1.45", "anthropic>=0.70", "pillow>=10"]
+
+[project.scripts]
+testflock = "testflock.cli:main"
+
+[tool.setuptools]
+packages = ["testflock", "testflock.drivers"]

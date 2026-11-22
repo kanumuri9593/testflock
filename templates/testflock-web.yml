@@ -1,0 +1,53 @@
+# Copy to .github/workflows/testflock-web.yml in a Flutter app repo.
+# Builds the web version, runs every web device setup in qa.yml in 4 parallel
+# jobs, merges one report and emails it. Linux runners only: cheapest minutes.
+name: Testflock (web)
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule: [{cron: "0 6 * * 1"}]     # Monday 06:00 UTC
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: {flutter-version: "3.38.2", cache: true}
+      # Local CanvasKit: the app must not depend on a CDN during tests
+      - run: flutter build web --release --no-web-resources-cdn
+      - uses: actions/upload-artifact@v4
+        with: {name: web-build, path: build/web, retention-days: 3}
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: {shard: ["1/4", "2/4", "3/4", "4/4"]}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {name: web-build, path: build/web}
+      - uses: kanumuri9593/testflock@main
+        with:
+          args: --only platform=web --shard ${{ matrix.shard }} --no-fail
+          artifact-name: report-${{ strategy.job-index }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # only if ai.provider: anthropic
+  report:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - uses: actions/download-artifact@v4
+        with: {pattern: report-*, path: shards}
+      - run: pip install --quiet "git+https://github.com/kanumuri9593/testflock"
+      - run: testflock merge shards --out testflock-report --notify
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: {name: testflock-report, path: testflock-report}
