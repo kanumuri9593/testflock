@@ -4,3 +4,4 @@ testflock-report/
 examples/*/web
 examples/*/build
 .env
+uv.lock
